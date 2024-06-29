@@ -111,3 +111,25 @@ class Student:
         return f"{self.first_name} {self.last_name}"
 
 
+class Homework():
+    """ClassCharts homework class."""
+    def __init__(self, **kwargs):
+        self.lesson = kwargs.get("lesson")
+        self.subject = kwargs.get("subject")
+        self.teacher = kwargs.get("teacher")
+        self.homework_type = kwargs.get("homework_type")
+        self.id = kwargs.get("id")
+        self.title = kwargs.get("title")
+        self.meta_title = kwargs.get("meta_title")
+        self.description = kwargs.get("description")
+        self.issue_date = kwargs.get("issue_date")
+        self.due_date = kwargs.get("due_date")
+        self.completion_time_unit = kwargs.get("completion_time_unit")
+        self.completion_time_value = kwargs.get("completion_time_value")
+        self.publish_time = kwargs.get("publish_time")
+        self.status = kwargs.get("status")
+        self.validated_links = kwargs.get("validated_links")
+        self.validated_attachments = kwargs.get("validated_attachments")
+
+    def __str__(self):
+        return f"{self.title} ({self.subject}) - {self.due_date}"
