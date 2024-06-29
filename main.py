@@ -4,7 +4,7 @@ import os
 import requests
 
 # helper classes
-from classcharts_helper import ClassChartsSession, ClassChartsStudent
+from classcharts import Session, Student
 
 API_URL = os.getenv("api_url", "")
 
@@ -61,7 +61,7 @@ def _get_students(session_id, all):
         raise SystemExit(err)
     students = []
     for student in response.json()['data']:
-        students.append(ClassChartsStudent(**student))
+        students.append(Student(**student))
     if all:
         return students
     else:
@@ -69,7 +69,7 @@ def _get_students(session_id, all):
         for idx, student in enumerate(students, start=1):
             print(f"#{idx}: {student.first_name} {student.last_name} ({student.school_name})")
         input_student = int(input("Enter the number of the pupil you want to view\n"))
-        return ClassChartsStudent(**response.json()['data'][input_student - 1])
+        return Student(**response.json()['data'][input_student - 1])
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description='Probe for ClassCharts data')
@@ -92,7 +92,7 @@ def main():
     all = False
     args = parse_args()
 
-    cs = ClassChartsSession()
+    cs = Session()
     print(f"Attempting to log in as {cs.username}...")
     cs_session = cs.login()
 
