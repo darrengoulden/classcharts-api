@@ -1,12 +1,26 @@
 import argparse
 from datetime import date, timedelta
+from lxml import html
 import os
 import requests
 
 # helper classes
-from classcharts import Session, Student
+from classcharts import Session, Student, Homework
 
 API_URL = os.getenv("api_url", "")
+
+def _tabulate(data):
+    """Tabulate data - data is an array (rows) or arrays (columns)"""
+    lengths = [0] * len(data[0])
+    for row in data:
+        for ind in range(len(row)):
+            if len(str(row[ind])) > lengths[ind]:
+                lengths[ind] = len(str(row[ind]))
+    for row in data:
+        for ind in range(len(row)):
+            print(str(row[ind]), end=" ")
+            print(" " * (lengths[ind] - len(str(row[ind]))), end=" ")
+        print("")
 
 def _get_activity(session_id, student_id, days=90):
     """Get student activity."""
@@ -36,11 +50,11 @@ def _get_behaviour(session_id, student_id, days=90):
     if response.json()['success'] == 1:
         print(f"Behaviour: {response.json()}")
 
-def _get_homework(session_id, student_id, display_date, days):
+def _get_homework(session_id, student_id, display_type, days, index=None):
     """Get student homework."""
     today = date.today()
     from_date = today - timedelta(days=days)
-    url = f"{API_URL}/homeworks/{student_id}/?display_date={display_date}&from={from_date}&to={today}"
+    url = f"{API_URL}/homeworks/{student_id}/?display_date={display_type}&from={from_date}&to={today}"
     header = {'Content-Type' : 'application/json', 'Authorization': f'Basic {session_id}'}
     try:
         response = requests.get(url, headers=header)
@@ -48,7 +62,35 @@ def _get_homework(session_id, student_id, display_date, days):
     except requests.exceptions.HTTPError as err:
         raise SystemExit(err)
     if response.json()['success'] == 1:
-        print(f"Homework: {response.json()}")
+        header = ['Number', 'Title', 'Subject', 'Lesson', 'Teacher', 'Due Date', 'Estimated Completion Time', 'Status']
+        homework_assignment_data = [header]
+        homework_assignments = []
+        for assignment in response.json()['data']:
+            homework_assignments.append(Homework(**assignment))
+        if index:
+            homework = homework_assignments[index - 1]
+            est_time = f"{homework.completion_time_value} {homework.completion_time_unit}"
+            print(f"Selected homework assignment: {index}")
+            print()
+            print(f"Title: {homework.title}")
+            print(f"Subject: {homework.subject}")
+            print(f"Lesson: {homework.lesson}")
+            print(f"Teacher: {homework.teacher}")
+            print(f"Due Date: {homework.due_date}")
+            print(f"Estimated Completion Time: {homework.completion_time_value} {homework.completion_time_unit}") if homework.completion_time_value else print(f"Estimated Completion Time: n/a")
+            print(f"Status: {homework.status['state']}")
+            print(f"Description: {html.fromstring(homework.description).text_content()}")
+            return
+        for idx, assignment in enumerate(sorted(homework_assignments, key=lambda homework_assignments:homework_assignments.due_date), start=1):
+            if assignment.homework_type == 'Homework':
+                est_time = f"{assignment.completion_time_value} {assignment.completion_time_unit}"
+                hw = [idx, assignment.title, assignment.subject, assignment.lesson, assignment.teacher, assignment.due_date, est_time if assignment.completion_time_value else 'n/a', assignment.status['state']]
+            homework_assignment_data.append(hw)
+        _tabulate(homework_assignment_data)
+        print()
+        print(f"Assignments due this week: {response.json()['meta']['this_week_due_count']}")
+        print(f"Assignments completed this week: {response.json()['meta']['this_week_completed_count']}")
+        print(f"Assignments outstanding this week: {response.json()['meta']['this_week_outstanding_count']}")
 
 def _get_students(session_id, all):
     """Get all students."""
@@ -84,6 +126,7 @@ def parse_args(args=None):
     parser_homework = subparsers.add_parser('homework', help='get homework for the last n days (default 30)')
     parser_homework.add_argument('--days', type=int, default=30, required=False)
     parser_homework.add_argument('--display_date', type=str, default='issue_date', choices=['issue_date', 'due_date'])
+    parser_homework.add_argument('--number', type=int, required=False)
     # parse the args
     return parser.parse_args(args)
 
@@ -125,13 +168,14 @@ def main():
                 #print()
                 return
     print(f"Selected pupil: {students}, ID: {students.id} ({students.school_name})")
+    print()
 
     if args.func == 'activity':
         _get_activity(cs.session_id, students.id, days=args.days)
     if args.func == 'behaviour':
         _get_behaviour(cs.session_id, students.id, days=args.days)
     if args.func == 'homework':
-        _get_homework(cs.session_id, students.id, display_date=args.display_date, days=args.days)
+        _get_homework(cs.session_id, students.id, display_type=args.display_date, days=args.days, index=args.number)
 
 if __name__ == '__main__':
     main()
