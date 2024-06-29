@@ -92,6 +92,21 @@ def _get_homework(session_id, student_id, display_type, days, index=None):
         print(f"Assignments completed this week: {response.json()['meta']['this_week_completed_count']}")
         print(f"Assignments outstanding this week: {response.json()['meta']['this_week_outstanding_count']}")
 
+def _get_classes(session_id, student_id):
+    """Get all classes."""
+    url = f"{API_URL}/classes/{student_id}"
+    header = {'Content-Type' : 'application/json', 'Authorization': f'Basic {session_id}'}
+    try:
+        response = requests.get(url, headers=header)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+    if response.json()['success'] == 1:
+        print(f"Classes: {response.json()}")
+    else:
+        print("No classes found.")
+        print(response.json()['error'])
+
 def _get_students(session_id, all):
     """Get all students."""
     url = f"{API_URL}/pupils"
@@ -127,6 +142,8 @@ def parse_args(args=None):
     parser_homework.add_argument('--days', type=int, default=30, required=False)
     parser_homework.add_argument('--display_date', type=str, default='issue_date', choices=['issue_date', 'due_date'])
     parser_homework.add_argument('--number', type=int, required=False)
+    # create the parser for the "classes" command
+    parser_homework = subparsers.add_parser('classes', help='get classes')
     # parse the args
     return parser.parse_args(args)
 
@@ -176,6 +193,8 @@ def main():
         _get_behaviour(cs.session_id, students.id, days=args.days)
     if args.func == 'homework':
         _get_homework(cs.session_id, students.id, display_type=args.display_date, days=args.days, index=args.number)
+    if args.func == 'classes':
+        _get_classes(cs.session_id, students.id)
 
 if __name__ == '__main__':
     main()
