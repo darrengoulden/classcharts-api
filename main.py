@@ -5,7 +5,7 @@ import os
 import requests
 
 # helper classes
-from classcharts import Session, Student, Homework, Timetable
+from classcharts import Announcements, Homework, Session, Student, Timetable
 
 API_URL = os.getenv("api_url", "")
 
@@ -150,6 +150,44 @@ def _get_timetable(session_id, student_id, date_required=date.today()):
         print("No timetable found.")
         print(response.json()['error'])
 
+def _get_badges(session_id, student_id):
+    """Get badges."""
+    url = f"{API_URL}/eventbadges/{student_id}"
+    header = {'Content-Type' : 'application/json', 'Authorization': f'Basic {session_id}'}
+    try:
+        response = requests.get(url, headers=header)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+    if response.json()['success'] == 1:
+        if response.json()['data']:
+            print(f"Badges: {response.json()}")
+        else:
+            print("No badges found.")
+            
+def _get_announcements(session_id, student_id):
+    """Get announcements."""
+    url = f"{API_URL}/announcements/{student_id}"
+    header = {'Content-Type' : 'application/json', 'Authorization': f'Basic {session_id}'}
+    try:
+        response = requests.get(url, headers=header)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+    if response.json()['success'] == 1:
+        announcements = []
+        for announcement in response.json()['data']:
+            announcements.append(Announcements(**announcement))
+        for announcement in announcements:
+            print(f"Title: {announcement.title} ({announcement.teacher_name})")
+            print(f"Date: {announcement.timestamp}")
+            print(f"Requires consent: {announcement.requires_consent}")
+            print("-" * len(f"Date: {announcement.timestamp}"))
+            print(f"Description: {html.fromstring(announcement.description).text_content()}")
+            print("-" * len(f"Date: {announcement.timestamp}"))
+            print(f"Attachments - Filename: {announcement.attachments[0]['filename']}, URL: {announcement.attachments[0]['url']}") if announcement.attachments else print("Attachments: None")
+            print()
+
 def _get_students(session_id, all):
     """Get all students."""
     url = f"{API_URL}/pupils"
@@ -190,6 +228,10 @@ def parse_args(args=None):
     # create the parser for the "timetable" command
     parser_timetable = subparsers.add_parser('timetable', help='get timetable')
     parser_timetable.add_argument('--date', type=lambda d: datetime.strptime(d, '%Y-%m-%d'), default=date.today(), required=False)
+    # create the parser for the "badges" command
+    parser_badges = subparsers.add_parser('badges', help='get badges')
+    # create the parser for the "annoucements" command
+    parser_announcements = subparsers.add_parser('announcements', help='get announcements')
     # parse the args
     return parser.parse_args(args)
 
@@ -242,6 +284,10 @@ def main():
         _get_classes(cs.session_id, students.id)
     if args.func == 'timetable':
         _get_timetable(cs.session_id, students.id, date_required=args.date)
+    if args.func == 'badges':
+        _get_badges(cs.session_id, students.id)
+    if args.func == 'announcements':
+        _get_announcements(cs.session_id, students.id)
 
 if __name__ == '__main__':
     main()

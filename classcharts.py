@@ -158,3 +158,31 @@ class Timetable():
 
     def __str__(self):
         return f"{self.lesson_name} - {self.teacher_name} - {self.start_time} - {self.end_time} - {self.room_name}"
+
+
+class Announcements():
+    """ClassCharts announcements class."""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get("id")
+        self.title = kwargs.get("title")
+        self.description = kwargs.get("description")
+        self.school_name = kwargs.get("school_name")
+        self.teacher_name = kwargs.get("teacher_name")
+        self.school_logo = kwargs.get("school_logo")
+        self.sticky = kwargs.get("sticky")
+        self.state = kwargs.get("state")
+        self.timestamp = kwargs.get("timestamp")
+        self.attachments = kwargs.get("attachments")
+        self.for_pupils = kwargs.get("for_pupils")
+        self.comment_visibility = kwargs.get("comment_visibility")
+        self.allow_comments = kwargs.get("allow_comments")
+        self.allow_reactions = kwargs.get("allow_reactions")
+        self.allow_consent = kwargs.get("allow_consent")
+        self.priority_pinned = kwargs.get("priority_pinned")
+        self.requires_consent = kwargs.get("requires_consent")
+        self.can_change_consent = kwargs.get("can_change_consent")
+        self.consent = kwargs.get("consent")
+        self.pupil_consents = kwargs.get("pupil_consents")
+
+    def __str__(self):
+        return f"{self.title} - {self.teacher_name} - {self.timestamp}"
