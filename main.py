@@ -1,11 +1,11 @@
 import argparse
-from datetime import date, timedelta
+from datetime import datetime, date, timedelta
 from lxml import html
 import os
 import requests
 
 # helper classes
-from classcharts import Session, Student, Homework
+from classcharts import Session, Student, Homework, Timetable
 
 API_URL = os.getenv("api_url", "")
 
@@ -107,6 +107,49 @@ def _get_classes(session_id, student_id):
         print("No classes found.")
         print(response.json()['error'])
 
+def _get_timetable(session_id, student_id, date_required=date.today()):
+    """Get timetable."""
+    url = f"{API_URL}/timetable/{student_id}/?date={date_required}"
+    header = {'Content-Type' : 'application/json', 'Authorization': f'Basic {session_id}'}
+    # get all timetable dates
+    try:
+        response = requests.get(url, headers=header)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+    if response.json()['success'] == 1:
+        timetable_dates = []
+        timetable_day_data = []
+        period_data = {}
+        for date in response.json()['meta']['timetable_dates']:
+            timetable_dates.append(date)
+        for day in timetable_dates:
+            try:
+                url = f"{API_URL}/timetable/{student_id}/?date={day}"
+                response = requests.get(url, headers=header)
+                response.raise_for_status()
+                for lessons in response.json()['data']:
+                    timetable_day_data.append(Timetable(**lessons))
+                for period in response.json()['meta']['periods']:
+                    period_data[period['number']] = [period['start_time'], period['end_time']]
+            except requests.exceptions.HTTPError as err:
+                raise SystemExit(err)
+        timetable_header = ['Date', 'Teacher', 'Lesson Name', 'Subject', 'Period Number', 'Room Name', 'Start Time', 'End Time']
+        timetable_data = [timetable_header]
+        timetable_data.append(["-" * 10, "-" * 10, "-" * 10, "-" * 10, "-" * 10, "-" * 10, "-" * 10, "-" * 10])
+        for timetable_day in timetable_day_data:
+            if timetable_day.period_number in period_data:
+                timetable_day.start_time = period_data[timetable_day.period_number][0]
+                timetable_day.end_time = period_data[timetable_day.period_number][1]
+            timetable_data.append([timetable_day.date, timetable_day.teacher_name, timetable_day.lesson_name, timetable_day.subject_name, timetable_day.period_number, timetable_day.room_name, timetable_day.start_time, timetable_day.end_time])
+            if timetable_day.period_number == '5':
+                timetable_data.append(["-" * 10, "-" * 10, "-" * 10, "-" * 10, "-" * 10, "-" * 10, "-" * 10, "-" * 10])        
+        _tabulate(timetable_data)
+        print()
+    else:
+        print("No timetable found.")
+        print(response.json()['error'])
+
 def _get_students(session_id, all):
     """Get all students."""
     url = f"{API_URL}/pupils"
@@ -143,7 +186,10 @@ def parse_args(args=None):
     parser_homework.add_argument('--display_date', type=str, default='issue_date', choices=['issue_date', 'due_date'])
     parser_homework.add_argument('--number', type=int, required=False)
     # create the parser for the "classes" command
-    parser_homework = subparsers.add_parser('classes', help='get classes')
+    parser_classes = subparsers.add_parser('classes', help='get classes')
+    # create the parser for the "timetable" command
+    parser_timetable = subparsers.add_parser('timetable', help='get timetable')
+    parser_timetable.add_argument('--date', type=lambda d: datetime.strptime(d, '%Y-%m-%d'), default=date.today(), required=False)
     # parse the args
     return parser.parse_args(args)
 
@@ -182,7 +228,6 @@ def main():
                 if student.display_detentions:
                     print(f"Detentions pending: {student.detention_pending_count} (total this term: {student.detention_yes_count})")
                     print()
-                #print()
                 return
     print(f"Selected pupil: {students}, ID: {students.id} ({students.school_name})")
     print()
@@ -195,6 +240,8 @@ def main():
         _get_homework(cs.session_id, students.id, display_type=args.display_date, days=args.days, index=args.number)
     if args.func == 'classes':
         _get_classes(cs.session_id, students.id)
+    if args.func == 'timetable':
+        _get_timetable(cs.session_id, students.id, date_required=args.date)
 
 if __name__ == '__main__':
     main()
