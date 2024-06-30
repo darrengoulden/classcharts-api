@@ -111,6 +111,27 @@ class Student:
         return f"{self.first_name} {self.last_name}"
 
 
+class Activity:
+    """ClassCharts activity class."""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get("id")
+        self.timestamp = kwargs.get("timestamp")
+        self.timestamp_custom_time = kwargs.get("timestamp_custom_time")
+        self.type = kwargs.get("type")
+        self.polarity = kwargs.get("polarity")
+        self.reason = kwargs.get("reason")
+        self.score = kwargs.get("score")
+        self.lesson_name = kwargs.get("lesson_name")
+        self.teacher_name = kwargs.get("teacher_name")
+        self.room_name = kwargs.get("room_name")
+        self.note = kwargs.get("note")
+        self.can_delete = kwargs.get("_can_delete")
+        self.badges = kwargs.get("badges")
+
+    def __str__(self):
+        return f"{self.timestamp} - {self.type} - {self.reason} - {self.score}"
+
+
 class Homework():
     """ClassCharts homework class."""
     def __init__(self, **kwargs):
