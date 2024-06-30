@@ -1,4 +1,4 @@
-# classcharts_export
+# classcharts-api
 Export data from classcharts.com
 
 ## Install
