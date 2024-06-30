@@ -206,3 +206,28 @@ class Detentions:
 
     def __str__(self):
         return f"{self.date} - {self.time} - {self.location} - {self.notes}"
+
+
+class AttendanceMeta:
+    """ClassCharts attendance class."""
+    def __init__(self, **kwargs):
+        self.dates = kwargs.get("dates")
+        self.sessions = kwargs.get("sessions")
+        self.percentage = kwargs.get("percentage")
+        self.percentage_since_august = kwargs.get("percentage_singe_august")
+        self.start_date = kwargs.get("start_date")
+        self.end_date = kwargs.get("end_date")
+
+    def __str__(self):
+        return f"{self.percentage} - {self.percentage_since_august}"
+
+
+class AttendanceData:
+    """ClassCharts attendance class."""
+    def __init__(self, **kwargs):
+        self.code = kwargs.get("code")
+        self.status = kwargs.get("status")
+        self.late_minutes = kwargs.get("late_minutes")
+
+    def __str__(self):
+        return f"{self.code} - {self.status} - {self.late_minutes}"

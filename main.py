@@ -6,7 +6,7 @@ import os
 import requests
 
 # helper classes
-from classcharts import Announcements, Detentions, Homework, Session, Student, Timetable
+from classcharts import AttendanceData, AttendanceMeta, Announcements, Detentions, Homework, Session, Student, Timetable
 
 API_URL = os.getenv("api_url", "")
 
@@ -234,6 +234,68 @@ def _get_detentions(session_id, student_id, save_csv=False):
         _tabulate(detention_data)
         print()
 
+def _get_attendance(session_id, student_id, days):
+    """Get attendance."""
+    today = date.today()
+    from_date = today - timedelta(days=days)
+    url = f"{API_URL}/attendance/{student_id}?from={from_date}&to={today}"
+    header = {'Content-Type' : 'application/json', 'Authorization': f'Basic {session_id}'}
+    try:
+        response = requests.get(url, headers=header)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+    # attenfance meta data
+    attendance_meta = AttendanceMeta(**response.json()['meta'])
+    # attendance data
+    attendance_data = []
+    attendance_data_complete = {}
+    if response.json()['success'] == 1:
+        attendance_data.append(response.json()['data'])
+    for attendance_date in attendance_meta.dates:
+        for attendance_session in attendance_data[0][attendance_date]:
+            session_data = AttendanceData(**attendance_data[0][attendance_date][attendance_session])
+            attendance_data_complete[attendance_date] = session_data
+    data_properties = {
+        'yes': 0,
+        'present': 0,
+        'ignore': 0,
+        'no': 0,
+        'absent': 0,
+        'excused': 0,
+        'late': 0
+    }
+    late_minutes = 0
+    for school_day_data in attendance_data_complete.values():
+        if school_day_data.status == 'yes':
+            data_properties['yes'] += 1
+        if school_day_data.status == 'present':
+            data_properties['present'] += 1
+        if school_day_data.status == 'ignore':
+            data_properties['ignore'] += 1
+        if school_day_data.status == 'no':
+            data_properties['no'] += 1
+        if school_day_data.status == 'absent':
+            data_properties['absent'] += 1
+        if school_day_data.status == 'excused':
+            data_properties['excused'] += 1
+        if school_day_data.status == 'late':
+            data_properties['late'] += 1
+            late_minutes += school_day_data.late_minutes
+    print(f"Attendance data for range: {attendance_meta.start_date.split("T")[0]}-{attendance_meta.end_date.split("T")[0]}")
+    print()
+    print(f"Total days present: {data_properties['present']}")
+    print(f"Total days absent: {data_properties['absent']}")
+    print(f"Total days excused: {data_properties['excused']}")
+    print(f"Total days ignored: {data_properties['ignore']}")
+    print(f"Total days late: {data_properties['late']}")
+    print(f"Total minutes late: {late_minutes}") if late_minutes > 0 else print()
+    print(f"Total days: {sum(x for x in data_properties.values() if x > 0)}")
+    print()
+    print(f"Percentage attendance of date range: {attendance_meta.percentage}%")
+    print(f"Percentage attendance since August: {attendance_meta.percentage_since_august}%")
+    print()
+
 def _get_students(session_id, all):
     """Get all students."""
     url = f"{API_URL}/pupils"
@@ -281,6 +343,9 @@ def parse_args(args=None):
     # create the parser for the "detentions" command
     parser_detentions = subparsers.add_parser('detentions', help='get detentions')
     parser_detentions.add_argument('--csv', type=bool, required=False)
+    # create the parser for the "attendance" command
+    parser_attendance = subparsers.add_parser('attendance', help='get attendance')
+    parser_attendance.add_argument('--days', type=int, default=30, required=False)
     # parse the args
     return parser.parse_args(args)
 
@@ -325,20 +390,22 @@ def main():
 
     if args.func == 'activity':
         _get_activity(cs.session_id, students.id, days=args.days)
-    if args.func == 'behaviour':
-        _get_behaviour(cs.session_id, students.id, days=args.days)
-    if args.func == 'homework':
-        _get_homework(cs.session_id, students.id, display_type=args.display_date, days=args.days, index=args.number)
-    if args.func == 'classes':
-        _get_classes(cs.session_id, students.id)
-    if args.func == 'timetable':
-        _get_timetable(cs.session_id, students.id, date_required=args.date)
-    if args.func == 'badges':
-        _get_badges(cs.session_id, students.id)
     if args.func == 'announcements':
         _get_announcements(cs.session_id, students.id)
+    if args.func == 'attendance':
+        _get_attendance(cs.session_id, students.id, days=args.days)
+    if args.func == 'badges':
+        _get_badges(cs.session_id, students.id)
+    if args.func == 'behaviour':
+        _get_behaviour(cs.session_id, students.id, days=args.days)
+    if args.func == 'classes':
+        _get_classes(cs.session_id, students.id)
     if args.func == 'detentions':
         _get_detentions(cs.session_id, students.id, save_csv=args.csv)
+    if args.func == 'homework':
+        _get_homework(cs.session_id, students.id, display_type=args.display_date, days=args.days, index=args.number)
+    if args.func == 'timetable':
+        _get_timetable(cs.session_id, students.id, date_required=args.date)
 
 if __name__ == '__main__':
     main()
