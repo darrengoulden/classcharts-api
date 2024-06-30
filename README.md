@@ -14,6 +14,7 @@ Install dotenvx
 
 Modify the env file
 ```
+api_url="https://www.classcharts.com/apiv2parent"
 email="email@address.com"
 password="your_password"
 ```
