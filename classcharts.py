@@ -111,3 +111,144 @@ class Student:
         return f"{self.first_name} {self.last_name}"
 
 
+class Activity:
+    """ClassCharts activity class."""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get("id")
+        self.timestamp = kwargs.get("timestamp")
+        self.timestamp_custom_time = kwargs.get("timestamp_custom_time")
+        self.type = kwargs.get("type")
+        self.polarity = kwargs.get("polarity")
+        self.reason = kwargs.get("reason")
+        self.score = kwargs.get("score")
+        self.lesson_name = kwargs.get("lesson_name")
+        self.teacher_name = kwargs.get("teacher_name")
+        self.room_name = kwargs.get("room_name")
+        self.note = kwargs.get("note")
+        self.can_delete = kwargs.get("_can_delete")
+        self.badges = kwargs.get("badges")
+
+    def __str__(self):
+        return f"{self.timestamp} - {self.type} - {self.reason} - {self.score}"
+
+
+class Homework():
+    """ClassCharts homework class."""
+    def __init__(self, **kwargs):
+        self.lesson = kwargs.get("lesson")
+        self.subject = kwargs.get("subject")
+        self.teacher = kwargs.get("teacher")
+        self.homework_type = kwargs.get("homework_type")
+        self.id = kwargs.get("id")
+        self.title = kwargs.get("title")
+        self.meta_title = kwargs.get("meta_title")
+        self.description = kwargs.get("description")
+        self.issue_date = kwargs.get("issue_date")
+        self.due_date = kwargs.get("due_date")
+        self.completion_time_unit = kwargs.get("completion_time_unit")
+        self.completion_time_value = kwargs.get("completion_time_value")
+        self.publish_time = kwargs.get("publish_time")
+        self.status = kwargs.get("status")
+        self.validated_links = kwargs.get("validated_links")
+        self.validated_attachments = kwargs.get("validated_attachments")
+
+    def __str__(self):
+        return f"{self.title} ({self.subject}) - {self.due_date}"
+
+
+class Timetable():
+    """ClassCharts timetable class."""
+    def __init__(self, **kwargs):
+        self.teacher_name = kwargs.get("teacher_name")
+        self.lesson_id = kwargs.get("lesson_id")
+        self.lesson_name = kwargs.get("lesson_name")
+        self.subject_name = kwargs.get("subject_name")
+        self.is_alternative_lesson = kwargs.get("is_alternative_lesson")
+        self.period_name = kwargs.get("period_name")
+        self.period_number = kwargs.get("period_number")
+        self.room_name = kwargs.get("room_name")
+        self.date = kwargs.get("date")
+        self.start_time = kwargs.get("start_time")
+        self.end_time = kwargs.get("end_time")
+        self.key = kwargs.get("key")
+        self.note_abstract = kwargs.get("note_abstract")
+        self.note = kwargs.get("note")
+        self.pupil_note_abstract = kwargs.get("pupil_note_abstract")
+        self.pupil_note = kwargs.get("pupil_note")
+        self.pupil_note_raw = kwargs.get("pupil_note_raw")
+
+    def __str__(self):
+        return f"{self.lesson_name} - {self.teacher_name} - {self.start_time} - {self.end_time} - {self.room_name}"
+
+
+class Announcements():
+    """ClassCharts announcements class."""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get("id")
+        self.title = kwargs.get("title")
+        self.description = kwargs.get("description")
+        self.school_name = kwargs.get("school_name")
+        self.teacher_name = kwargs.get("teacher_name")
+        self.school_logo = kwargs.get("school_logo")
+        self.sticky = kwargs.get("sticky")
+        self.state = kwargs.get("state")
+        self.timestamp = kwargs.get("timestamp")
+        self.attachments = kwargs.get("attachments")
+        self.for_pupils = kwargs.get("for_pupils")
+        self.comment_visibility = kwargs.get("comment_visibility")
+        self.allow_comments = kwargs.get("allow_comments")
+        self.allow_reactions = kwargs.get("allow_reactions")
+        self.allow_consent = kwargs.get("allow_consent")
+        self.priority_pinned = kwargs.get("priority_pinned")
+        self.requires_consent = kwargs.get("requires_consent")
+        self.can_change_consent = kwargs.get("can_change_consent")
+        self.consent = kwargs.get("consent")
+        self.pupil_consents = kwargs.get("pupil_consents")
+
+    def __str__(self):
+        return f"{self.title} - {self.teacher_name} - {self.timestamp}"
+
+
+class Detentions:
+    """ClassCharts detentions class."""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get("id")
+        self.attended = kwargs.get("attended")
+        self.date = kwargs.get("date")
+        self.length = kwargs.get("length")
+        self.location = kwargs.get("location")
+        self.notes = kwargs.get("notes")
+        self.time = kwargs.get("time")
+        self.pupil = kwargs.get("pupil")
+        self.lesson = kwargs.get("lesson")
+        self.lesson_pupil_behaviour = kwargs.get("lesson_pupil_behaviour")
+        self.teacher = kwargs.get("teacher")
+        self.detention_type = kwargs.get("detention_type")
+
+    def __str__(self):
+        return f"{self.date} - {self.time} - {self.location} - {self.notes}"
+
+
+class AttendanceMeta:
+    """ClassCharts attendance class."""
+    def __init__(self, **kwargs):
+        self.dates = kwargs.get("dates")
+        self.sessions = kwargs.get("sessions")
+        self.percentage = kwargs.get("percentage")
+        self.percentage_since_august = kwargs.get("percentage_singe_august")
+        self.start_date = kwargs.get("start_date")
+        self.end_date = kwargs.get("end_date")
+
+    def __str__(self):
+        return f"{self.percentage} - {self.percentage_since_august}"
+
+
+class AttendanceData:
+    """ClassCharts attendance class."""
+    def __init__(self, **kwargs):
+        self.code = kwargs.get("code")
+        self.status = kwargs.get("status")
+        self.late_minutes = kwargs.get("late_minutes")
+
+    def __str__(self):
+        return f"{self.code} - {self.status} - {self.late_minutes}"
