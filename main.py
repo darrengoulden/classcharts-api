@@ -1,11 +1,12 @@
 import argparse
+import csv
 from datetime import datetime, date, timedelta
 from lxml import html
 import os
 import requests
 
 # helper classes
-from classcharts import Announcements, Homework, Session, Student, Timetable
+from classcharts import Announcements, Detentions, Homework, Session, Student, Timetable
 
 API_URL = os.getenv("api_url", "")
 
@@ -188,6 +189,51 @@ def _get_announcements(session_id, student_id):
             print(f"Attachments - Filename: {announcement.attachments[0]['filename']}, URL: {announcement.attachments[0]['url']}") if announcement.attachments else print("Attachments: None")
             print()
 
+def _get_detentions(session_id, student_id, save_csv=False):
+    """Get detentions."""
+    url = f"{API_URL}/detentions/{student_id}"
+    header = {'Content-Type' : 'application/json', 'Authorization': f'Basic {session_id}'}
+    try:
+        response = requests.get(url, headers=header)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+    if response.json()['success'] == 1:
+        csv_file = 'detentions.csv'
+        detentions = []
+        for detention in response.json()['data']:
+            detentions.append(Detentions(**detention))
+        detention_header = ['Date', 'Time', 'Length', 'Location', 'Lesson', 'Type', 'Teacher', 'Notes']
+        detention_data = [detention_header]
+        if save_csv:
+            with open(csv_file, 'w') as csv_file:
+                csv_writer = csv.writer(csv_file)
+                csv_writer.writerow(detention_header)
+                for detention in detentions:
+                    if detention.lesson:
+                        lesson = f"{detention.lesson['subject']['name']}"
+                    else:
+                        lesson = "N/A"
+                    if detention.teacher:
+                        teacher = f"{detention.teacher['title']} {detention.teacher['first_name']} {detention.teacher['last_name']}"
+                    else:
+                        teacher = "N/A"
+                    csv_writer.writerow([detention.date, detention.time, detention.length, detention.location, lesson, detention.detention_type['name'], teacher, detention.notes])
+            print(f"Detentions saved to {csv_file}")
+            return
+        for detention in detentions:
+            if detention.lesson:
+                lesson = f"{detention.lesson['name']} ({detention.lesson['subject']['name']})"
+            else:
+                lesson = "N/A"
+            if detention.teacher:
+                teacher = f"{detention.teacher['title']} {detention.teacher['first_name']} {detention.teacher['last_name']}"
+            else:
+                teacher = "N/A"
+            detention_data.append([detention.date, detention.time, detention.length, detention.location, lesson, detention.detention_type['name'], teacher, detention.notes])
+        _tabulate(detention_data)
+        print()
+
 def _get_students(session_id, all):
     """Get all students."""
     url = f"{API_URL}/pupils"
@@ -232,6 +278,9 @@ def parse_args(args=None):
     parser_badges = subparsers.add_parser('badges', help='get badges')
     # create the parser for the "annoucements" command
     parser_announcements = subparsers.add_parser('announcements', help='get announcements')
+    # create the parser for the "detentions" command
+    parser_detentions = subparsers.add_parser('detentions', help='get detentions')
+    parser_detentions.add_argument('--csv', type=bool, required=False)
     # parse the args
     return parser.parse_args(args)
 
@@ -288,6 +337,8 @@ def main():
         _get_badges(cs.session_id, students.id)
     if args.func == 'announcements':
         _get_announcements(cs.session_id, students.id)
+    if args.func == 'detentions':
+        _get_detentions(cs.session_id, students.id, save_csv=args.csv)
 
 if __name__ == '__main__':
     main()
