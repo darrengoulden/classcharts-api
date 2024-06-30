@@ -133,3 +133,28 @@ class Homework():
 
     def __str__(self):
         return f"{self.title} ({self.subject}) - {self.due_date}"
+
+
+class Timetable():
+    """ClassCharts timetable class."""
+    def __init__(self, **kwargs):
+        self.teacher_name = kwargs.get("teacher_name")
+        self.lesson_id = kwargs.get("lesson_id")
+        self.lesson_name = kwargs.get("lesson_name")
+        self.subject_name = kwargs.get("subject_name")
+        self.is_alternative_lesson = kwargs.get("is_alternative_lesson")
+        self.period_name = kwargs.get("period_name")
+        self.period_number = kwargs.get("period_number")
+        self.room_name = kwargs.get("room_name")
+        self.date = kwargs.get("date")
+        self.start_time = kwargs.get("start_time")
+        self.end_time = kwargs.get("end_time")
+        self.key = kwargs.get("key")
+        self.note_abstract = kwargs.get("note_abstract")
+        self.note = kwargs.get("note")
+        self.pupil_note_abstract = kwargs.get("pupil_note_abstract")
+        self.pupil_note = kwargs.get("pupil_note")
+        self.pupil_note_raw = kwargs.get("pupil_note_raw")
+
+    def __str__(self):
+        return f"{self.lesson_name} - {self.teacher_name} - {self.start_time} - {self.end_time} - {self.room_name}"
