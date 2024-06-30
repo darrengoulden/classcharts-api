@@ -186,3 +186,23 @@ class Announcements():
 
     def __str__(self):
         return f"{self.title} - {self.teacher_name} - {self.timestamp}"
+
+
+class Detentions:
+    """ClassCharts detentions class."""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get("id")
+        self.attended = kwargs.get("attended")
+        self.date = kwargs.get("date")
+        self.length = kwargs.get("length")
+        self.location = kwargs.get("location")
+        self.notes = kwargs.get("notes")
+        self.time = kwargs.get("time")
+        self.pupil = kwargs.get("pupil")
+        self.lesson = kwargs.get("lesson")
+        self.lesson_pupil_behaviour = kwargs.get("lesson_pupil_behaviour")
+        self.teacher = kwargs.get("teacher")
+        self.detention_type = kwargs.get("detention_type")
+
+    def __str__(self):
+        return f"{self.date} - {self.time} - {self.location} - {self.notes}"
