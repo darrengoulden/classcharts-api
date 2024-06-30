@@ -10,7 +10,7 @@ Install the requirements
 - `pip install -r requirements.txt`
 
 Install dotenvx
-See https://dotenvx.com/docs/install
+- See https://dotenvx.com/docs/install
 
 Modify the env file
 ```
