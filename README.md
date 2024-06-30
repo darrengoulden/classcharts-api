@@ -32,6 +32,7 @@ Print help
 Get student activity
 - `dotenvx run -- python main.py activity`
 - `dotenvx run -- python main.py activity --days <int>`
+- `dotenvx run -- python main.py activity --csv true`
 - `dotenvx run -- python main.py activity -h`
 
 Get student behaviour
@@ -43,4 +44,5 @@ Get student homework
 - `dotenvx run -- python main.py homework`
 - `dotenvx run -- python main.py homework --days <int>`
 - `dotenvx run -- python main.py homework --display_date choices=['issue_date', 'due_date']`
+- `dotenvx run -- python main.py homework --number <int>`
 - `dotenvx run -- python main.py homework -h`
