@@ -3,9 +3,13 @@
 import os
 import requests
 
+# pylint: disable=too-few-public-methods
+# pylint: disable=too-many-instance-attributes
+
 
 class Activity:
     """ClassCharts activity class."""
+
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")
         self.timestamp = kwargs.get("timestamp")
@@ -25,8 +29,9 @@ class Activity:
         return f"{self.timestamp} - {self.type} - {self.reason} - {self.score}"
 
 
-class Announcements():
+class Announcements:
     """ClassCharts announcements class."""
+
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")
         self.title = kwargs.get("title")
@@ -55,6 +60,7 @@ class Announcements():
 
 class AttendanceData:
     """ClassCharts attendance class."""
+
     def __init__(self, **kwargs):
         self.code = kwargs.get("code")
         self.status = kwargs.get("status")
@@ -66,6 +72,7 @@ class AttendanceData:
 
 class AttendanceMeta:
     """ClassCharts attendance class."""
+
     def __init__(self, **kwargs):
         self.dates = kwargs.get("dates")
         self.sessions = kwargs.get("sessions")
@@ -80,6 +87,7 @@ class AttendanceMeta:
 
 class Detentions:
     """ClassCharts detentions class."""
+
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")
         self.attended = kwargs.get("attended")
@@ -98,8 +106,9 @@ class Detentions:
         return f"{self.date} - {self.time} - {self.location} - {self.notes}"
 
 
-class Homework():
+class Homework:
     """ClassCharts homework class."""
+
     def __init__(self, **kwargs):
         self.lesson = kwargs.get("lesson")
         self.subject = kwargs.get("subject")
@@ -122,8 +131,9 @@ class Homework():
         return f"{self.title} ({self.subject}) - {self.due_date}"
 
 
-class Session():
+class Session:
     """ClassCharts session class."""
+
     def __init__(self):
         self.api_url = os.getenv("api_url", "")
         self.username = os.getenv("email", "")
@@ -134,45 +144,43 @@ class Session():
     def login(self):
         """Login to ClassCharts and get an Access token (session_id)."""
         url = f"{self.api_url}/login"
-        header = {'Content-Type' : 'application/x-www-form-urlencoded'} 
-        data = {
-            "email": self.username,
-            "password": self.password
-        }
-        response = self._make_request(url, 'POST', header, data)
-        self.session_id = response['meta']['session_id']
-        self.success = response['success']
+        header = {"Content-Type": "application/x-www-form-urlencoded"}
+        data = {"email": self.username, "password": self.password}
+        response = self._make_request(url, "POST", header, data)
+        self.session_id = response["meta"]["session_id"]
+        self.success = response["success"]
         return response
-        
+
     def ping(self):
         """Refresh ClassCharts login session_id.
         Access tokens should be refreshed every 180 seconds."""
         url = f"{self.api_url}/ping"
-        header = {'Content-Type' : 'application/x-www-form-urlencoded', 'Authorization': f'Basic {self.session_id}'}
-        data = {
-            "include_data": True
+        header = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": f"Basic {self.session_id}",
         }
-        response = self._make_request(url, 'POST', header, data)
-        self.session_id = response['meta']['session_id']
+        data = {"include_data": True}
+        response = self._make_request(url, "POST", header, data)
+        self.session_id = response["meta"]["session_id"]
         return response
 
     def _make_request(self, url, method, header, data=None):
         """Make a request to ClassCharts API."""
         try:
             response = requests.request(
-                method,
-                url,
-                headers=header,
-                data=data
+                method, url, headers=header, data=data, timeout=10
             )
             response.raise_for_status()
             return response.json()
         except requests.exceptions.HTTPError as err:
-            raise SystemExit(err)
+            raise SystemExit(err) from err
 
 
 class Student:
     """ClassCharts student class."""
+
+    # pylint: disable=too-many-statements
+
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")
         self.first_name = kwargs.get("first_name")
@@ -199,9 +207,13 @@ class Student:
         self.display_activity_detentions = kwargs.get("display_activity_detentions")
         self.display_timetable = kwargs.get("display_timetable")
         self.display_mental_health = kwargs.get("display_mental_health")
-        self.display_two_way_communications = kwargs.get("display_two_way_communications")
+        self.display_two_way_communications = kwargs.get(
+            "display_two_way_communications"
+        )
         self.display_absences = kwargs.get("display_absences")
-        self.display_mental_health_no_tracker = kwargs.get("display_mental_health_no_tracker")
+        self.display_mental_health_no_tracker = kwargs.get(
+            "display_mental_health_no_tracker"
+        )
         self.can_upload_attachments = kwargs.get("can_upload_attachments")
         self.display_event_badges = kwargs.get("display_event_badges")
         self.display_avatars = kwargs.get("display_avatars")
@@ -229,9 +241,9 @@ class Student:
         return f"{self.first_name} {self.last_name}"
 
 
-
-class Timetable():
+class Timetable:
     """ClassCharts timetable class."""
+
     def __init__(self, **kwargs):
         self.teacher_name = kwargs.get("teacher_name")
         self.lesson_id = kwargs.get("lesson_id")
@@ -252,4 +264,4 @@ class Timetable():
         self.pupil_note_raw = kwargs.get("pupil_note_raw")
 
     def __str__(self):
-        return f"{self.lesson_name} - {self.teacher_name} - {self.start_time} - {self.end_time} - {self.room_name}"
+        return f"{self.lesson_name} - {self.teacher_name} - {self.start_time} - {self.end_time} - {self.room_name}"  # pylint: disable=line-too-long
